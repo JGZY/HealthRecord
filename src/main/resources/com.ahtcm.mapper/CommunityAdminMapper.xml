@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.CommunityAdminMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.CommunityAdmin" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR"/>
+    <association property="community" javaType="com.ahtcm.domain.Community" columnPrefix="c_">
+      <result property="id" column="id"/>
+      <result property="communityName" column="community_name"/>
+      <result property="maxPeople" column="max_people"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from community_admin
+    where id = #{id}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.CommunityAdmin" useGeneratedKeys="true" keyProperty="id">
+    insert into community_admin (id, name, account, 
+      phone, community_id,password)
+    values (#{id}, #{name}, #{account},
+      #{phone}, #{community.id},#{password})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.CommunityAdmin" >
+    update community_admin
+    set name = #{name,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      community_id = #{community.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <sql id="where_sql">
+    <where>
+      <if test="keyword !=null and keyword != ''">
+        and (ca.name like concat('%',#{keyword},'%')
+        or ca.account like concat('%',#{keyword},'%')
+        or ca.phone like concat('%',#{keyword},'%')
+        or c.community_name like concat('%',#{keyword},'%'))
+      </if>
+    </where>
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select ca.id, ca.name, ca.account, ca.phone,
+      c.id as c_id,c.community_name as c_community_name,c.max_people as c_max_poeple
+    from community_admin  ca inner JOIN community c
+        on c.id = ca.community_id
+    where ca.id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+      select
+          ca.id, ca.name, ca.account, ca.phone,
+          c.id as c_id,c.community_name as c_community_name,c.max_people as c_max_poeple
+       from community_admin ca
+      inner JOIN community c
+          on c.id = ca.community_id
+      <include refid="where_sql"/>
+      order BY c.id,ca.id
+  </select>
+  <select id="selectByAccount" resultMap="BaseResultMap">
+    select
+      ca.id, ca.name, ca.account, ca.phone,
+      c.id as c_id,c.community_name as c_community_name,c.max_people as c_max_poeple
+    from community_admin ca
+      inner JOIN community c
+        on c.id = ca.community_id
+    where ca.account=#{account}
+  </select>
+  <select id="selectAdminByCid" resultType="com.ahtcm.domain.CommunityAdmin">
+    select * from community_admin ca where ca.community_id = #{id}
+  </select>
+</mapper>

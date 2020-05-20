@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.Role" >
+    <id column="rid" property="rid" jdbcType="BIGINT" />
+    <result column="rnum" property="rnum" jdbcType="VARCHAR" />
+    <result column="rname" property="rname" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from role
+    where rid = #{rid,jdbcType=BIGINT}
+  </delete>
+
+  <delete id="deletePermissionRel">
+    delete from role_permission_rel
+    where rid=#{rid}
+  </delete>
+
+  <insert id="insert" parameterType="com.ahtcm.domain.Role" useGeneratedKeys="true" keyProperty="rid">
+    insert into role (rid, rnum, rname
+      )
+    values (#{rid,jdbcType=BIGINT}, #{rnum,jdbcType=VARCHAR}, #{rname,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <insert id="insertRoleAndPermissionRel">
+    insert into role_permission_rel (rid, pid)
+    VALUES (#{rid},#{pid})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.Role" >
+    update role
+    set rnum = #{rnum,jdbcType=VARCHAR},
+      rname = #{rname,jdbcType=VARCHAR}
+    where rid = #{rid,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select rid, rnum, rname
+    from role
+    where rid = #{rid,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select rid, rnum, rname
+    from role
+  </select>
+  <select id="selectResidentRole" resultType="com.ahtcm.domain.Role">
+    select * from role r where r.rnum = 'resident'
+  </select>
+  <select id="selectConsultantRole" resultType="com.ahtcm.domain.Role">
+    select * from role r where r.rnum = 'consultant'
+  </select>
+    <select id="selectCommunityAdminRole" resultType="com.ahtcm.domain.Role">
+      select * from role r where r.rnum = 'communityAdmin'
+    </select>
+    <select id="getRoles" resultType="com.ahtcm.domain.Role">
+      select rid, rnum, rname
+      from role
+    </select>
+    <select id="getRolesByAccount" resultType="java.lang.String">
+      select r.rnum from role r inner join user u on u.rid = r.rid and u.account =#{account}
+    </select>
+  <select id="getPermissionByAccount" resultType="java.lang.String">
+    select DISTINCT p.presource from permission p
+    inner join role_permission_rel rp
+    on rp.pid = p.pid
+    and rp.rid in (
+        select
+          r.rid
+        from role r
+          INNER join user u
+            on u.rid = r.rid and u.account=#{account}
+      )
+   </select>
+  <select id="getRoleByUserAccount" resultType="com.ahtcm.domain.Role">
+    select r.rid,r.rname,r.rnum
+    from role as r
+    inner join user u
+    on u.rid = r.rid
+    where u.account=#{account}
+  </select>
+
+</mapper>

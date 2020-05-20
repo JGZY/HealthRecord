@@ -1,0 +1,22 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+    <%@include file="/static/common/common.jsp"%>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/static/js/logger.js"></script>
+    <style>
+        .datagrid-cell{
+             white-space:normal;
+             word-break:break-all
+         }
+    </style>
+</head>
+<body>
+    <div id="tb">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" id="reload">刷新</a>
+        <input type="text" name="keyword" style="width: 150px;height: 33px;padding-left: 5px"/>
+        <a class="easyui-linkbutton" iconCls="icon-search" id="searchBtn">查询(姓名,账号)</a>
+    </div>
+    <table id="dg"></table>
+</body>
+</html>

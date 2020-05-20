@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.CommunityMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.Community" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="community_name" property="communityName" jdbcType="VARCHAR" />
+    <result column="max_people" property="maxPeople" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from community
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.Community" >
+    insert into community (id, community_name, max_people
+    )
+    values (#{id,jdbcType=BIGINT}, #{communityName,jdbcType=VARCHAR}, #{maxPeople,jdbcType=VARCHAR}
+    )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.Community" >
+    update community
+    set community_name = #{communityName,jdbcType=VARCHAR},
+    max_people = #{maxPeople,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, community_name, max_people
+    from community
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <sql id="where_sql">
+    <where>
+      <if test="keyword !=null and keyword != ''">
+        and community_name like concat('%',#{keyword},'%')
+      </if>
+    </where>
+  </sql>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, community_name, max_people
+    from community
+    <include refid="where_sql"/>
+  </select>
+  <select id="selectCommunityByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select id, community_name, max_people
+    from community
+    where community_name = #{communityName}
+  </select>
+  <select id="selectSameNameCommunity" resultMap="BaseResultMap">
+    select id, community_name, max_people
+    from community
+    where community_name = #{communityName} and id!=#{id}
+  </select>
+</mapper>

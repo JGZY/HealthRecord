@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+	">
+
+    <bean id="healthLoginFilter" class="com.ahtcm.filter.HealthLoginFilter"/>
+
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--登陆认证的路径-->
+        <property name="loginUrl" value="/login"/>
+        <property name="filters">
+            <map>
+                <entry key="authc" value-ref="healthLoginFilter"/>
+               <!-- <entry key="kickout" value-ref="kickoutSessionControlFilter"/>-->
+            </map>
+        </property>
+        <property name="filterChainDefinitions">
+            <value>
+                /static/** = anon
+                /login.jsp = anon
+                /register.jsp = anon
+                /register/register = anon
+                /register/getCommunityList = anon
+                /login/getRoleList = anon
+                /login/login = anon
+                /logout = logout
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+    <!--自定义realm-->
+    <bean id="healthRealm" class="com.ahtcm.realm.HealthRealm">
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+
+    <!--凭证匹配器-->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashAlgorithmName" value="md5"/>
+        <property name="hashIterations" value="3"/>
+    </bean>
+
+    <!--shiro安全管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="healthRealm"/>
+        <property name="cacheManager" ref="shiroEhcacheManager"/>
+    </bean>
+
+    <bean id="shiroEhcacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:/ehcache-shiro.xml"/>
+    </bean>
+
+    <!--配置为true使用cglib继承的方式
+    false为jdk接口动态代理 但控制器没有实现接口-->
+    <aop:config proxy-target-class="true"/>
+
+    <!--启用shiro注解扫描-->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>

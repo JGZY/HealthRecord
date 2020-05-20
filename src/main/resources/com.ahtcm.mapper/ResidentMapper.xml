@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.ResidentMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.Resident" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="resident_name" property="residentName" jdbcType="VARCHAR" />
+    <result column="resident_account" property="residentAccount" jdbcType="VARCHAR" />
+    <result column="resident_birth" property="residentBirth" jdbcType="TIMESTAMP" />
+    <result column="resident_gender" property="residentGender" jdbcType="BIT" />
+    <result column="resident_height" property="residentHeight" jdbcType="VARCHAR" />
+    <result column="resident_weight" property="residentWeight" jdbcType="VARCHAR" />
+    <result column="resident_phone" property="residentPhone" jdbcType="VARCHAR" />
+    <result column="resident_house" property="residentHouse" jdbcType="VARCHAR" />
+    <result column="resident_work" property="residentWork" jdbcType="VARCHAR" />
+    <result column="resident_apply_state" property="residentApplyState" jdbcType="BIT"/>
+    <result column="resident_password" property="residentPassword" jdbcType="VARCHAR"/>
+    <association property="residentCommunity" javaType="com.ahtcm.domain.Community" columnPrefix="c_">
+      <result property="id" column="id"/>
+      <result property="communityName" column="community_name"/>
+      <result property="maxPeople" column="max_people"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from resident
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.Resident" >
+    insert into resident (id, resident_name, resident_account, 
+      resident_birth, resident_gender, resident_height, 
+      resident_weight, resident_phone, resident_community_id, 
+      resident_house, resident_work,resident_password)
+    values (#{id,jdbcType=BIGINT}, #{residentName,jdbcType=VARCHAR}, #{residentAccount,jdbcType=VARCHAR}, 
+      #{residentBirth,jdbcType=TIMESTAMP}, #{residentGender,jdbcType=BIT}, #{residentHeight,jdbcType=VARCHAR}, 
+      #{residentWeight,jdbcType=VARCHAR}, #{residentPhone,jdbcType=VARCHAR}, #{residentCommunity.id,jdbcType=BIGINT},
+      #{residentHouse,jdbcType=VARCHAR}, #{residentWork,jdbcType=VARCHAR},#{residentPassword})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.Resident" >
+    update resident
+    set resident_name = #{residentName,jdbcType=VARCHAR},
+      resident_account = #{residentAccount,jdbcType=VARCHAR},
+      resident_birth = #{residentBirth,jdbcType=TIMESTAMP},
+      resident_gender = #{residentGender,jdbcType=BIT},
+      resident_height = #{residentHeight,jdbcType=VARCHAR},
+      resident_weight = #{residentWeight,jdbcType=VARCHAR},
+      resident_phone = #{residentPhone,jdbcType=VARCHAR},
+      resident_community_id = #{residentCommunity.id,jdbcType=BIGINT},
+      resident_house = #{residentHouse,jdbcType=VARCHAR},
+      resident_work = #{residentWork,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateAuditPass" parameterType="com.ahtcm.domain.Resident" >
+    update resident
+    set resident_apply_state = 1
+    where id = #{id}
+  </update>
+  <update id="updateAuditNoPass" parameterType="com.ahtcm.domain.Resident" >
+    update resident
+    set resident_apply_state = 0
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+    resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,resident_password,
+    c.id as c_id
+    from resident as r inner join community as c on r.resident_community_id = c.id
+    where r.id = #{id}
+  </select>
+  <sql id="where_sql">
+    <where>
+      1=1 and
+      r.resident_apply_state = 1
+      <if test="cid!=null and cid!=''">
+        and r.resident_community_id = #{cid}
+      </if>
+      <if test="keyword !=null and keyword != ''">
+        and (c.community_name like concat('%',#{keyword},'%')
+        or r.resident_phone like concat('%',#{keyword},'%')
+        or r.resident_account like concat('%',#{keyword},'%')
+        or r.resident_name like concat('%',#{keyword},'%')
+        or r.resident_house like concat('%',#{keyword},'%')
+        or r.resident_work like concat('%',#{keyword},'%'))
+      </if>
+    </where>
+  </sql>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+    resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,
+    c.id as c_id,
+    c.`community_name` as c_community_name
+    from resident as r left join community as c on r.resident_community_id = c.id
+    <include refid="where_sql"/>
+    ORDER BY r.id DESC
+  </select>
+  <select id="selectApplyList" resultMap="BaseResultMap">
+    select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+      resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,
+      c.id as c_id,
+      c.`community_name` as c_community_name,
+      c.`max_people` as c_max_people
+    from resident as r left join community as c on r.resident_community_id = c.id where r.resident_apply_state is null or r.resident_apply_state = 0
+    ORDER BY r.resident_apply_state asc, r.id DESC
+  </select>
+  <select id="selectSameAccountResident" resultMap="BaseResultMap">
+    select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+      resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,
+      c.id as c_id,
+      c.`community_name` as c_community_name
+    from resident as r left join community as c on r.resident_community_id = c.id
+    where r.resident_account=#{residentAccount} and r.resident_apply_state = 1 and r.id != #{id};
+  </select>
+    <select id="getRegisterInfo" resultMap="BaseResultMap">
+      select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+        resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,
+        c.id as c_id,
+        c.`community_name` as c_community_name
+      from resident as r left join community as c on r.resident_community_id = c.id
+      where resident_account = #{activeAccount} and resident_apply_state = 1
+    </select>
+    <select id="selectByAccount" resultMap="BaseResultMap">
+      select r.id, resident_name, resident_account, resident_birth, resident_gender, resident_height,
+        resident_weight, resident_phone, resident_community_id, resident_house, resident_work,resident_apply_state,
+        c.id as c_id,
+        c.`community_name` as c_community_name
+      from resident as r left join community as c on r.resident_community_id = c.id
+      where resident_account = #{account}
+    </select>
+</mapper>

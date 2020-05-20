@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.ConsultantMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.Consultant" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="consultant_name" property="consultantName" jdbcType="VARCHAR" />
+    <result column="consultant_age" property="consultantAge" jdbcType="INTEGER" />
+    <result column="consultant_phone" property="consultantPhone" jdbcType="VARCHAR" />
+    <result column="consultant_gender" property="consultantGender" jdbcType="BIT" />
+    <result column="consultant_account" property="consultantAccount" jdbcType="VARCHAR" />
+    <association property="community" javaType="com.ahtcm.domain.Community" columnPrefix="c_">
+      <result property="id" column="id"/>
+      <result property="communityName" column="community_name"/>
+      <result property="maxPeople" column="max_people"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from consultant
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.Consultant" useGeneratedKeys="true" keyProperty="id">
+    insert into consultant (id, consultant_name, consultant_age, 
+      consultant_phone, consultant_gender, community_id,consultant_account,consultant_password
+      )
+    values (#{id,jdbcType=BIGINT}, #{consultantName,jdbcType=VARCHAR}, #{consultantAge,jdbcType=INTEGER}, 
+      #{consultantPhone,jdbcType=VARCHAR}, #{consultantGender,jdbcType=BIT}, #{community.id,jdbcType=BIGINT},#{consultantAccount},#{consultantPassword}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.Consultant" >
+    update consultant
+    set consultant_name = #{consultantName,jdbcType=VARCHAR},
+      consultant_age = #{consultantAge,jdbcType=INTEGER},
+      consultant_phone = #{consultantPhone,jdbcType=VARCHAR},
+      consultant_gender = #{consultantGender,jdbcType=BIT},
+      community_id = #{community.id,jdbcType=BIGINT},
+      consultant_account=#{consultantAccount}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select cs.id, consultant_name, consultant_age, consultant_phone, consultant_gender,consultant_account,
+    c.id as c_id,
+    c.`community_name` as c_community_name,
+    c.`max_people` as c_max_people
+    from consultant as cs left join community as c on cs.community_id = c.id
+    where cs.id = #{id}
+  </select>
+  <select id="selectByAccount" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select cs.id, consultant_name, consultant_age, consultant_phone, consultant_gender,consultant_account,
+    c.id as c_id,
+    c.`community_name` as c_community_name,
+    c.`max_people` as c_max_people
+    from consultant as cs left join community as c on cs.community_id = c.id
+    where cs.consultant_account = #{consultantAccount}
+  </select>
+  <select id="selectOtherByAccount" resultMap="BaseResultMap">
+    select cs.id, consultant_name, consultant_age, consultant_phone, consultant_gender,consultant_account,
+    c.id as c_id,
+    c.`community_name` as c_community_name,
+    c.`max_people` as c_max_people
+    from consultant as cs left join community as c on cs.community_id = c.id
+    where cs.consultant_account = #{consultantAccount} and cs.id!=#{id}
+  </select>
+  <sql id="where_sql">
+    <where>
+      1=1
+      <if test="cid !=null and cid != ''">
+        and cs.community_id = #{cid}
+      </if>
+      <if test="keyword !=null and keyword != ''">
+        and( c.community_name like concat('%',#{keyword},'%')
+        or cs.consultant_Name like concat('%',#{keyword},'%')
+        or cs.consultant_Account like concat('%',#{keyword},'%')
+        or cs.consultant_Phone like concat('%',#{keyword},'%'))
+      </if>
+    </where>
+  </sql>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select cs.id, consultant_name, consultant_age, consultant_phone, consultant_gender,consultant_account,
+    c.id as c_id,
+    c.`community_name` as c_community_name,
+    c.`max_people` as c_max_people
+    from consultant as cs left join community as c on cs.community_id = c.id
+    <include refid="where_sql"/>
+  </select>
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/aop
+      http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--日志配置-->
+    <bean id="systemAspect" class="com.ahtcm.util.aspect.SystemAspect"/>
+    <aop:config>
+        <!--service包及其子包下的所有方法  排除掉get开头的和select开头的方法-->
+        <aop:pointcut id="servicePoint" expression="execution(* com.ahtcm.service..*.*(..))
+            and !execution(* com.ahtcm.service..*.get*(..))
+            and !execution(* com.ahtcm.service..*.select*(..))
+            and !execution(* com.ahtcm.service..*.register(..))
+            and !execution(* com.ahtcm.service..*.uploadExcelFile(..))
+            and !execution(* com.ahtcm.service..*.downloadExcelTpl(..))
+            and !execution(* com.ahtcm.service..*.downloadExcel(..))"/>
+        <aop:aspect ref="systemAspect">
+            <aop:after method="writerLog" pointcut-ref="servicePoint"/>
+        </aop:aspect>
+    </aop:config>
+
+    <!--spring声明式事务-->
+    <tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config proxy-target-class="true">
+        <aop:pointcut id="pointcutTX" expression="execution(* com.ahtcm.service..*.*(..))
+            and !execution(* com.ahtcm.service..*.get*(..))
+            and !execution(* com.ahtcm.service..*.select*(..))"/>
+        <aop:advisor advice-ref="transactionAdvice" pointcut-ref="pointcutTX" order="2"/>
+    </aop:config>
+</beans>

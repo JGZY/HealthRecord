@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.HealthRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.HealthRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="high_blood" property="highBlood" jdbcType="BIT" />
+    <result column="covid" property="covid" jdbcType="BIT" />
+    <result column="family_illness" property="familyIllness" jdbcType="VARCHAR" />
+    <result column="blood_type" property="bloodType" jdbcType="VARCHAR" />
+    <result column="color_blind" property="colorBlind" jdbcType="VARCHAR" />
+    <result column="blood_sugar" property="bloodSugar" jdbcType="VARCHAR" />
+    <result column="white_blood" property="whiteBlood" jdbcType="BIT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="vaccin" property="vaccin" jdbcType="VARCHAR" />
+    <association property="community" javaType="com.ahtcm.domain.Community" columnPrefix="c_">
+      <result property="id" column="id"/>
+      <result property="communityName" column="community_name"/>
+      <result property="maxPeople" column="max_people"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from health_record
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.HealthRecord" >
+    insert into health_record (id, name, account, 
+      high_blood, covid, family_illness, 
+      blood_type, color_blind, blood_sugar, 
+      white_blood, remark,c_id,vaccin)
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{account,jdbcType=VARCHAR}, 
+      #{highBlood,jdbcType=BIT}, #{covid,jdbcType=BIT}, #{familyIllness,jdbcType=VARCHAR}, 
+      #{bloodType,jdbcType=VARCHAR}, #{colorBlind,jdbcType=VARCHAR}, #{bloodSugar,jdbcType=VARCHAR}, 
+      #{whiteBlood,jdbcType=BIT}, #{remark,jdbcType=VARCHAR},#{community.id},#{vaccin})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.HealthRecord" >
+    update health_record
+    set name = #{name,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR},
+      high_blood = #{highBlood,jdbcType=BIT},
+      covid = #{covid,jdbcType=BIT},
+      family_illness = #{familyIllness,jdbcType=VARCHAR},
+      blood_type = #{bloodType,jdbcType=VARCHAR},
+      color_blind = #{colorBlind,jdbcType=VARCHAR},
+      blood_sugar = #{bloodSugar,jdbcType=VARCHAR},
+      white_blood = #{whiteBlood,jdbcType=BIT},
+      remark = #{remark,jdbcType=VARCHAR},
+      c_id = #{community.id},
+      vaccin = #{vaccin}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, name, account, high_blood, covid, family_illness, blood_type, color_blind, 
+    blood_sugar, white_blood, remark
+    from health_record
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select hr.id, name, account, high_blood, covid, family_illness, blood_type, color_blind,
+    blood_sugar, white_blood, remark,vaccin,
+      c.id as c_id,
+      c.`community_name` as c_community_name
+    from health_record hr
+    INNER JOIN  community c
+    on hr.c_id = c.id
+    where 1=1
+    <if test="cid != null and cid != ''">
+       and  c_id=#{cid}
+    </if>
+    <if test="keyword!= null and keyword != ''">
+      and (hr.name like concat('%',#{keyword},'%')
+      or hr.account like concat('%',#{keyword},'%')
+      or hr.vaccin like concat('%',#{keyword},'%'))
+    </if>
+    ORDER BY hr.id DESC
+  </select>
+    <select id="selectByAccount" resultMap="BaseResultMap">
+      select hr.id, name, account, high_blood, covid, family_illness, blood_type, color_blind,
+        blood_sugar, white_blood, remark,vaccin,
+        c.id as c_id,
+        c.`community_name` as c_community_name
+      from health_record hr
+        INNER JOIN  community c
+          on hr.c_id = c.id
+      where hr.account = #{account}
+    </select>
+</mapper>

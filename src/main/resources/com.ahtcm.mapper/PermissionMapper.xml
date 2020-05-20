@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.PermissionMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.Permission" >
+    <id column="pid" property="pid" jdbcType="BIGINT" />
+    <result column="pname" property="pname" jdbcType="VARCHAR" />
+    <result column="presource" property="presource" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from permission
+    where pid = #{pid,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.Permission" >
+    insert into permission (pid, pname, presource
+      )
+    values (#{pid,jdbcType=BIGINT}, #{pname,jdbcType=VARCHAR}, #{presource,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.Permission" >
+    update permission
+    set pname = #{pname,jdbcType=VARCHAR},
+      presource = #{presource,jdbcType=VARCHAR}
+    where pid = #{pid,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select pid, pname, presource
+    from permission
+    where pid = #{pid,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select pid, pname, presource
+    from permission
+  </select>
+  <select id="selectPermissionByRid" resultType="com.ahtcm.domain.Permission">
+    select
+      p.pid,p.pname,p.presource
+    from role_permission_rel rpr
+      inner join permission p
+      on p.pid = rpr.pid
+    where rpr.rid = #{rid}
+  </select>
+</mapper>

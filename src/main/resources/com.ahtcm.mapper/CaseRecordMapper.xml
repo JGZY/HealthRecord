@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ahtcm.mapper.CaseRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.ahtcm.domain.CaseRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="hospital" property="hospital" jdbcType="VARCHAR" />
+    <result column="dept" property="dept" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="complain" property="complain" jdbcType="VARCHAR" />
+    <result column="history" property="history" jdbcType="VARCHAR" />
+    <result column="diagnose" property="diagnose" jdbcType="VARCHAR" />
+    <result column="view" property="view" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR"/>
+    <association property="resident" javaType="com.ahtcm.domain.Resident" columnPrefix="r_">
+      <result property="id" column="id"/>
+      <result property="residentName" column="resident_name"/>
+      <result property="residentAccount" column="resident_account"/>
+    </association>
+
+    <association property="consultant" javaType="com.ahtcm.domain.Consultant" columnPrefix="c_">
+      <result property="id" column="id"/>
+      <result property="consultantName" column="consultant_name"/>
+      <result property="consultantAccount" column="consultant_account"/>
+    </association>
+
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from case_record
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ahtcm.domain.CaseRecord" >
+    insert into case_record (id, r_id, create_time, 
+      hospital, dept, code, 
+      complain, history, diagnose, 
+      c_id, view,status)
+    values (#{id,jdbcType=BIGINT}, #{resident.id}, #{createTime,jdbcType=TIMESTAMP},
+      #{hospital,jdbcType=VARCHAR}, #{dept,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, 
+      #{complain,jdbcType=VARCHAR}, #{history,jdbcType=VARCHAR}, #{diagnose,jdbcType=VARCHAR}, 
+      #{consultant.id}, #{view,jdbcType=VARCHAR},#{status})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.ahtcm.domain.CaseRecord" >
+    update case_record
+    set r_id = #{rId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      hospital = #{hospital,jdbcType=VARCHAR},
+      dept = #{dept,jdbcType=VARCHAR},
+      code = #{code,jdbcType=VARCHAR},
+      complain = #{complain,jdbcType=VARCHAR},
+      history = #{history,jdbcType=VARCHAR},
+      diagnose = #{diagnose,jdbcType=VARCHAR},
+      c_id = #{cId,jdbcType=BIGINT},
+      view = #{view,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, r_id, create_time, hospital, dept, code, complain, history, diagnose, 
+    c_id, view
+    from case_record
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select cr.id, create_time, hospital, dept, code, complain, history, diagnose, view,status,
+      r.id as r_id,r.resident_name as r_resident_name,r.resident_account as r_resident_account,
+      c.id as c_id,c.consultant_name as c_consultant_name,c.consultant_account as c_consultant_account
+    from case_record cr
+    inner JOIN resident r on r.id = cr.r_id
+    inner join consultant c on c.id = cr.c_id
+    where 1=1
+    <if test="cid !=null and cid != ''">
+      and cr.c_id = #{cid}
+    </if>
+    <if test="keyword !=null and keyword != ''">
+      and r.resident_name like concat('%',#{keyword},'%')
+      or r.resident_account like concat('%',#{keyword},'%')
+      or cr.hospital like concat('%',#{keyword},'%')
+      or c.consultant_name like concat('%',#{keyword},'%')
+      or c.consultant_account like concat('%',#{keyword},'%')
+    </if>
+    order by cr.create_time desc
+  </select>
+  <select id="getPersonalCaseRecordList" resultMap="BaseResultMap">
+    select cr.id, create_time, hospital, dept, code, complain, history, diagnose, view,
+    r.id as r_id,r.resident_name as r_resident_name,r.resident_account as r_resident_account,
+    c.id as c_id,c.consultant_name as c_consultant_name,c.consultant_account as c_consultant_account,cr.status as status
+    from case_record cr
+    inner JOIN resident r on r.id = cr.r_id
+    inner join consultant c on c.id = cr.c_id
+    where 1=1
+      and r.resident_account = #{account}
+    <if test="keyword !=null and keyword != ''">
+      and cr.hospital like concat('%',#{keyword},'%')
+      or c.consultant_name like concat('%',#{keyword},'%')
+      or c.consultant_account like concat('%',#{keyword},'%')
+    </if>
+    order by cr.create_time desc
+  </select>
+</mapper>

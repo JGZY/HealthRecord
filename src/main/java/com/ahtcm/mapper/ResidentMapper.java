@@ -1,6 +1,5 @@
 package com.ahtcm.mapper;
 
-import com.ahtcm.util.QueryVo;
 import com.ahtcm.domain.Resident;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,4 +27,7 @@ public interface ResidentMapper {
     Resident getRegisterInfo(String activeAccount);
 
     Resident selectByAccount(String account);
+
+
+    List<Resident> selectByIds(List<Integer> ids);
 }
